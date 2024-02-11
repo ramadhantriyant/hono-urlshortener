@@ -13,19 +13,11 @@ app.get('/', (c) => {
   return c.text('Hono URL Shortener')
 })
 
-app.post('/', zValidator('json', schema), async (c) => {
-  const { short, long } = await c.req.json()
-  const metadata = { hit: 0 }
-  await c.env.HONOLINK.put(short, long, { metadata })
-
-  return c.json({ status: 201, message: 'Created' }, 201)
-})
-
-app.put('/', zValidator('json', schema), async (c) => {
+app.on('POST' || 'PUT', '/', zValidator('json', schema), async (c) => {
   const { short, long } = await c.req.json()
   await c.env.HONOLINK.put(short, long)
 
-  return c.json({ status: 200, message: 'Updated'})
+  return c.json({ status: 201, message: 'Created' }, 201)
 })
 
 app.get('/notfound', (c) => {
@@ -33,15 +25,15 @@ app.get('/notfound', (c) => {
 })
 
 app.get('/:shortlink', async (c) => {
-  const shortlink = c.req.param('shortlink')
-  const longlink = await c.env.HONOLINK.get(shortlink) || '/notfound'
+  const key = c.req.param('shortlink')
+  const value = await c.env.HONOLINK.get(key);
 
-  return c.redirect(longlink)
+  return c.redirect(value || '/notfound')
 })
 
 app.delete('/:shortlink', async (c) => {
-  const shortlink = c.req.param('shortlink')
-  await c.env.HONOLINK.delete(shortlink)
+  const key = c.req.param('shortlink')
+  await c.env.HONOLINK.delete(key)
 
   return c.json({ status: 200, message: 'Deleted' })
 })
