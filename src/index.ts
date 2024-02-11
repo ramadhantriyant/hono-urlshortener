@@ -13,11 +13,19 @@ app.get('/', (c) => {
   return c.text('Hono URL Shortener')
 })
 
-app.on('POST' || 'PUT', '/', zValidator('json', schema), async (c) => {
+app.post('/', zValidator('json', schema), async (c) => {
+  const { short, long } = await c.req.json()
+  const metadata = { hit: 0 }
+  await c.env.HONOLINK.put(short, long, { metadata })
+
+  return c.json({ status: 201, message: 'Created' }, 201)
+})
+
+app.put('/', zValidator('json', schema), async (c) => {
   const { short, long } = await c.req.json()
   await c.env.HONOLINK.put(short, long)
 
-  return c.json({ status: 201, message: 'Updated' }, 201)
+  return c.json({ status: 200, message: 'Updated'})
 })
 
 app.get('/notfound', (c) => {
