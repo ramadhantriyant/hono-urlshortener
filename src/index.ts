@@ -7,15 +7,16 @@ type Bindings = {
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
-const schema = z.object({ short: z.string(), long: z.string() })
+const schema = z.object({ url: z.string() })
 
 app.get('/', (c) => {
   return c.text('Hono URL Shortener')
 })
 
-app.on('POST' || 'PUT', '/', zValidator('json', schema), async (c) => {
-  const { short, long } = await c.req.json()
-  await c.env.HONOLINK.put(short, long)
+app.on('POST' || 'PUT', '/:shortlink', zValidator('json', schema), async (c) => {
+  const shortlink = c.req.param('shortlink')
+  const { url } = await c.req.json()
+  await c.env.HONOLINK.put(shortlink, url)
 
   return c.json({ status: 201, message: 'Created' }, 201)
 })
